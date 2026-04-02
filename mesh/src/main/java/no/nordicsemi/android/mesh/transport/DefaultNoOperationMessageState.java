@@ -573,11 +573,11 @@ class DefaultNoOperationMessageState extends MeshMessageState {
      * @param controlMessage control message received by the transport layer
      */
     private void parseControlMessage(final ControlMessage controlMessage) {
-        //Get the segment count count of the access message
-        final int segmentCount = message.getNetworkLayerPdu().size();
         if (controlMessage.getPduType() == MeshManagerApi.PDU_TYPE_NETWORK) {
             final TransportControlMessage transportControlMessage = controlMessage.getTransportControlMessage();
             if (transportControlMessage.getState() == TransportControlMessage.TransportControlMessageState.LOWER_TRANSPORT_BLOCK_ACKNOWLEDGEMENT) {
+                /* Get the segment count of the access message */
+                final int segmentCount = message.getNetworkLayerPdu().size();
                 MeshLogger.verbose(TAG, "Acknowledgement payload: " + MeshParserUtils.bytesToHex(controlMessage.getTransportControlPdu(), false));
                 final ArrayList<Integer> retransmitPduIndexes = BlockAcknowledgementMessage.getSegmentsToBeRetransmitted(controlMessage.getTransportControlPdu(), segmentCount);
                 mMeshStatusCallbacks.onBlockAcknowledgementReceived(controlMessage.getSrc(), controlMessage);
