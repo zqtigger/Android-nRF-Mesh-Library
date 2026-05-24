@@ -30,6 +30,7 @@ import no.nordicsemi.android.nrfmesh.coldchain.ColdChainKeys
 import no.nordicsemi.android.nrfmesh.coldchain.ColdChainNodeConfigurator
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.MeshDataRepository
 import no.nordicsemi.android.support.v18.scanner.*
+import java.nio.ByteBuffer
 import java.util.*
 import javax.inject.Inject
 
@@ -114,6 +115,8 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 .show()
         }
 
+        // 检查 Mesh Library 是否已从 Room DB 加载了持久化网络
+        checkExistingNetwork()
         log("配网模块就绪，请点击「创建网络」开始")
         updateUi()
     }
@@ -140,13 +143,33 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
         private const val PROVISIONER_UNICAST_ADDR = 0x0000
     }
 
+    /** 检查 Mesh Library 是否已从 Room DB 加载了持久化网络 */
+    private fun checkExistingNetwork() {
+        try {
+            val savedNetwork = meshManagerApi.meshNetwork
+            if (savedNetwork != null && savedNetwork.meshUUID.isNotEmpty()
+                && savedNetwork.nodes.isNotEmpty()) {
+                meshNetwork = savedNetwork
+                networkReady = true
+                nextSensorAddr = (savedNetwork.nodes.maxOf { it.unicastAddress } + 1)
+                    .coerceAtLeast(ColdChainKeys.SENSOR_START_ADDR)
+                fixProvisionerAddress()
+                val nodeCount = savedNetwork.nodes.size
+                log("已加载现有网络: ${nodeCount}个已配网节点")
+                toast("已加载网络 (${nodeCount}个节点)")
+            }
+        } catch (_: Exception) { }
+    }
+
     private fun createNetwork() {
         try {
             setupMeshCallbacks()
             meshManagerApi.createMeshNetwork()
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
-                assignProvisionerAddress()
+                // ⭐ 关键：库 generateMeshNetwork 把 Provisioner 地址设为 0x0001
+                //    但网关也需要 0x0001，必须修正 Provisioner 为 0x0000
+                fixProvisionerAddress()
                 handler.postDelayed({
                     try {
                         if (meshNetwork!!.getAppKey(ColdChainKeys.APP_KEY_INDEX) == null) {
@@ -154,14 +177,14 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                             appKey.name = ColdChainKeys.APP_KEY_NAME
                             appKey.boundNetKeyIndex = ColdChainKeys.NET_KEY_INDEX
                             meshNetwork!!.addAppKey(appKey)
-                            log("AppKey 已添加")
+                            log("AppKey 已添加: 0123456789ABCDEF...")
                         }
                     } catch (e: Exception) { log("添加AppKey失败: ${e.message}") }
                     updateUi()
                 }, 500)
                 networkReady = true
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
-                log("网络创建成功! 网关=0x0001, 传感器起始=0x0002")
+                log("网络创建成功! Provisioner=0x0000, 网关=0x0001, 传感器起始=0x0002")
                 toast("Mesh 网络已创建")
             }
         } catch (e: Exception) {
@@ -171,10 +194,25 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
         updateUi()
     }
 
-    private fun assignProvisionerAddress() {
+    /**
+     * 修正 Provisioner 地址为 0x0000
+     * nRF Mesh Library 的 generateMeshNetwork() 默认：
+     *   unicastRange = (0x0001, 0x199A)，Provisioner 地址 = 0x0001
+     * 但这与网关地址 0x0001 冲突，需改为 0x0000
+     */
+    private fun fixProvisionerAddress() {
         val net = meshNetwork ?: return
         try {
-            if (net.provisioners.isEmpty()) {
+            val provisioner = net.selectedProvisioner
+            if (provisioner != null) {
+                val currentAddr = provisioner.provisionerAddress
+                if (currentAddr != PROVISIONER_UNICAST_ADDR) {
+                    // 库默认地址 0x0001（或非 0x0000），修正为 0x0000
+                    provisioner.provisionerAddress = PROVISIONER_UNICAST_ADDR
+                    log("Provisioner 地址已修正: 0x${Integer.toHexString(currentAddr ?: 0)} → 0x0000")
+                }
+            } else {
+                // 兜底：没有 Provisioner，创建新的
                 val ur = AllocatedUnicastRange(PROVISIONER_UNICAST_ADDR, 0x000F)
                 val gr = AllocatedGroupRange(0xC000, 0xCCFF)
                 val sr = AllocatedSceneRange(0x0000, 0xFFFF)
@@ -182,14 +220,9 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 prov.provisionerAddress = PROVISIONER_UNICAST_ADDR
                 net.selectProvisioner(prov)
                 net.addProvisioner(prov)
-                log("Provisioner 已创建 0x0000")
-            } else {
-                val p = net.selectedProvisioner
-                if (p != null && p.provisionerAddress == null) {
-                    p.provisionerAddress = PROVISIONER_UNICAST_ADDR
-                }
+                log("Provisioner 已创建: 0x0000")
             }
-        } catch (e: Exception) { log("Prov失败: ${e.message}") }
+        } catch (e: Exception) { log("修正Prov地址失败: ${e.message}") }
     }
 
     private fun askResetNetwork() {
@@ -206,7 +239,7 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             meshManagerApi.resetMeshNetwork()
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
-                assignProvisionerAddress()
+                fixProvisionerAddress()
                 networkReady = true
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
                 tvDeviceList.text = "暂无设备"
@@ -390,7 +423,7 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
 
     private fun setupProvisioningCallbacks() {
         meshManagerApi.setProvisioningStatusCallbacks(object : MeshProvisioningStatusCallbacks {
-            override fun onProvisioningStateChanged(node: UnprovisionedMeshNode, state: ProvisioningState.States, data: ByteArray) {
+            override fun onProvisioningStateChanged(node: UnprovisionedMeshNode, state: ProvisioningState.States, data: ByteArray?) {
                 handler.post {
                     tvStatus.text = "配网: $state"
                     if (state == ProvisioningState.States.PROVISIONING_CAPABILITIES) {
@@ -399,11 +432,11 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                     }
                 }
             }
-            override fun onProvisioningFailed(node: UnprovisionedMeshNode, state: ProvisioningState.States, data: ByteArray) {
+            override fun onProvisioningFailed(node: UnprovisionedMeshNode, state: ProvisioningState.States, data: ByteArray?) {
                 isConnecting = false
                 handler.post { tvStatus.text = "配网失败: $state"; toast("配网失败") }
             }
-            override fun onProvisioningCompleted(node: ProvisionedMeshNode, state: ProvisioningState.States, data: ByteArray) {
+            override fun onProvisioningCompleted(node: ProvisionedMeshNode, state: ProvisioningState.States, data: ByteArray?) {
                 val addr = node.unicastAddress
                 log("配网完成 0x${Integer.toHexString(addr).uppercase()}")
                 isConnecting = false
