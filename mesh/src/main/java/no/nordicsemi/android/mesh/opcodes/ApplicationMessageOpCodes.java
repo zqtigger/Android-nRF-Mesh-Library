@@ -616,6 +616,11 @@ public class ApplicationMessageOpCodes {
     public static final int HEALTH_FAULT_STATUS = 0x05;
 
     /**
+     * Opcode for the "Health Fault Clear" message
+     */
+    public static final int HEALTH_FAULT_CLEAR = 0x802F;
+
+    /**
      * Opcode for the "Health Fault Get" message
      */
     public static final int HEALTH_FAULT_GET = 0x8031;
