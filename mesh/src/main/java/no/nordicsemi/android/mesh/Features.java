@@ -11,6 +11,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import androidx.annotation.IntDef;
+import androidx.room.Ignore;
 import no.nordicsemi.android.mesh.transport.ProvisionedMeshNode;
 
 /**
@@ -51,6 +52,7 @@ public class Features implements Parcelable {
      * @param proxy    Specifies if the proxy feature is supported based on {@link FeatureState}
      * @param relay    Specifies if the relay feature is supported based on {@link FeatureState}
      */
+    @Ignore
     public Features(@FeatureState final int friend, @FeatureState final int lowPower, @FeatureState final int proxy, @FeatureState final int relay) {
         this.friend = friend;
         this.lowPower = lowPower;

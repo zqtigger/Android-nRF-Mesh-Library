@@ -24,6 +24,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'dagger.hilt.android.plugin'
 apply from: rootProject.file("gradle/git-tag-version.gradle")
 apply plugin: 'org.jetbrains.kotlin.android'
+apply plugin: 'org.jetbrains.kotlin.kapt'
 
 android {
 
@@ -85,13 +86,15 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 
     implementation 'androidx.activity:activity:1.8.0'
+    implementation 'androidx.activity:activity-ktx:1.8.0'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
     implementation 'androidx.core:core-splashscreen:1.0.1'
 
     // V5 新增依赖
     // Room
-    implementation 'androidx.room:room-runtime:2.6.1'
-    implementation 'androidx.room:room-ktx:2.6.1'
-    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    implementation 'androidx.room:room-runtime:2.7.0'
+    implementation 'androidx.room:room-ktx:2.7.0'
+    kapt 'androidx.room:room-compiler:2.7.0'
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.11.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
@@ -118,11 +121,8 @@ dependencies {
 
     implementation "com.google.dagger:hilt-android:$hilt_version"
 
-    annotationProcessor "com.google.dagger:hilt-android-compiler:$hilt_version"
-    annotationProcessor 'androidx.hilt:hilt-compiler:1.2.0'
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
+    kapt 'androidx.hilt:hilt-compiler:1.2.0'
 
     implementation project(':mesh')
-}
-repositories {
-    mavenCentral()
 }
