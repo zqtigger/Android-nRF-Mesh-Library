@@ -65,7 +65,6 @@ class ColdChainV5MainActivity : AppCompatActivity() {
     }
 
     private fun showFragment(index: Int) {
-        if (index == currentIndex) return
         currentIndex = index
         val fragment = fragments[index]
         supportFragmentManager.beginTransaction()
