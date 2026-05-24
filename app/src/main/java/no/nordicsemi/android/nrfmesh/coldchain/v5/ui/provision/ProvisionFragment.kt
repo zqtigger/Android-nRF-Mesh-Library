@@ -140,6 +140,7 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     // ─── Network Management ───
 
     companion object {
+        /** Provisioner 地址 = 0x0000，与 ColdChainKeys 的地址体系一致 */
         private const val PROVISIONER_UNICAST_ADDR = 0x0000
     }
 
@@ -167,8 +168,6 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             meshManagerApi.createMeshNetwork()
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
-                // ⭐ 关键：库 generateMeshNetwork 把 Provisioner 地址设为 0x0001
-                //    但网关也需要 0x0001，必须修正 Provisioner 为 0x0000
                 fixProvisionerAddress()
                 handler.postDelayed({
                     try {
@@ -196,9 +195,8 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
 
     /**
      * 修正 Provisioner 地址为 0x0000
-     * nRF Mesh Library 的 generateMeshNetwork() 默认：
-     *   unicastRange = (0x0001, 0x199A)，Provisioner 地址 = 0x0001
-     * 但这与网关地址 0x0001 冲突，需改为 0x0000
+     * nRF Mesh Library generateMeshNetwork() 默认 Provisioner=0x0001，
+     * 需改为 0x0000 以腾出 0x0001 给网关节点
      */
     private fun fixProvisionerAddress() {
         val net = meshNetwork ?: return
@@ -207,12 +205,10 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             if (provisioner != null) {
                 val currentAddr = provisioner.provisionerAddress
                 if (currentAddr != PROVISIONER_UNICAST_ADDR) {
-                    // 库默认地址 0x0001（或非 0x0000），修正为 0x0000
                     provisioner.provisionerAddress = PROVISIONER_UNICAST_ADDR
                     log("Provisioner 地址已修正: 0x${Integer.toHexString(currentAddr ?: 0)} → 0x0000")
                 }
             } else {
-                // 兜底：没有 Provisioner，创建新的
                 val ur = AllocatedUnicastRange(PROVISIONER_UNICAST_ADDR, 0x000F)
                 val gr = AllocatedGroupRange(0xC000, 0xCCFF)
                 val sr = AllocatedSceneRange(0x0000, 0xFFFF)
@@ -321,11 +317,17 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
         if (index !in foundDevices.indices) return
         val wrapper = foundDevices[index]
         val devName = wrapper.device.name ?: ""
+        // 地址分配规则：
+        //   1. 设备名以 "Gateway_" 开头 → 网关 0x0001
+        //   2. 尚无任何已配网节点 → 视为网关，分配 0x0001（即使名字不匹配）
+        //   3. 已有节点 → 传感器，分配 nextSensorAddr
         val addr = when {
             devName.startsWith("Gateway_") -> ColdChainKeys.GATEWAY_UNICAST_ADDR
-            nextSensorAddr == ColdChainKeys.SENSOR_START_ADDR && !hasGateway() -> ColdChainKeys.GATEWAY_UNICAST_ADDR
+            meshNetwork?.nodes.isNullOrEmpty() -> ColdChainKeys.GATEWAY_UNICAST_ADDR
             else -> nextSensorAddr
         }
+        val role = if (addr == ColdChainKeys.GATEWAY_UNICAST_ADDR) "网关" else "传感器"
+        log("设备地址分配: ${devName} → ${role} 0x${Integer.toHexString(addr).uppercase()}")
         provisionDevice(wrapper, addr)
     }
 
@@ -557,9 +559,11 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     private fun updateUi() {
         handler.post {
             if (networkReady && meshNetwork != null) {
+                val provAddr = meshNetwork?.selectedProvisioner?.provisionerAddress ?: 0
                 tvNetworkInfo.text = buildString {
                     append("网络就绪\n")
-                    append("网关: 0x${Integer.toHexString(ColdChainKeys.GATEWAY_UNICAST_ADDR).uppercase()}\n")
+                    append("Provisioner: 0x${Integer.toHexString(provAddr).uppercase()}\n")
+                    append("网关地址: 0x${Integer.toHexString(ColdChainKeys.GATEWAY_UNICAST_ADDR).uppercase()}\n")
                     append("下个传感器: 0x${Integer.toHexString(nextSensorAddr).uppercase()}\n")
                     append("AppKey[${ColdChainKeys.APP_KEY_INDEX}]: 0123456789ABCDEF...\n")
                 }
