@@ -72,6 +72,11 @@
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
 
+    <!-- V5: 网关 HTTP 通信 + WorkManager -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <uses-sdk tools:overrideLibrary="androidx.core.splashscreen"/>
 
     <application
@@ -249,5 +254,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- V5 增强版主界面（运维 + 审计） -->
+        <activity
+            android:name=".coldchain.v5.ui.ColdChainV5MainActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTop"
+            android:exported="true">
+        </activity>
+
+        <!-- WorkManager 初始化 Provider（Hilt Worker 支持） -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+        </provider>
     </application>
 </manifest>

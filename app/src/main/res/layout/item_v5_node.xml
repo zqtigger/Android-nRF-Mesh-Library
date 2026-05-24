@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="72dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvNodeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SENSOR_XXXX"
+            android:textColor="#212121"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvNodeData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="4.1°C  62%RH  电池92%  RSSI=-52"
+            android:textColor="#757575"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvNodeStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="正常"
+        android:textColor="#4CAF50"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:minWidth="50dp"
+        android:gravity="center" />
+
+</LinearLayout>

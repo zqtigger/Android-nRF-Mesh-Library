@@ -23,15 +23,28 @@
 package no.nordicsemi.android.nrfmesh.di;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.hilt.work.HiltWorkerFactory;
 import androidx.multidex.MultiDexApplication;
+import androidx.work.Configuration;
 import dagger.hilt.android.HiltAndroidApp;
+import javax.inject.Inject;
 
 @HiltAndroidApp
-public class MeshApplication extends MultiDexApplication {
+public class MeshApplication extends MultiDexApplication implements Configuration.Provider {
+
+    @Inject
+    HiltWorkerFactory workerFactory;
 
     @Override
     public void onCreate() {
         super.onCreate();
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
+
+    @Override
+    public Configuration getWorkManagerConfiguration() {
+        return new Configuration.Builder()
+                .setWorkerFactory(workerFactory)
+                .build();
     }
 }
