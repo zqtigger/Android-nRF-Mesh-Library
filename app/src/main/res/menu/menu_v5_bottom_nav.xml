@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/navProvision"
+        android:title="配网"
+        android:icon="@android:drawable/ic_menu_add" />
+    <item
         android:id="@+id/navDashboard"
         android:title="仪表盘"
         android:icon="@android:drawable/ic_menu_view" />

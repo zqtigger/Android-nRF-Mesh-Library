@@ -249,10 +249,7 @@
             android:windowSoftInputMode="adjustPan"
             android:launchMode="singleTop"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+
         </activity>
 
         <!-- V5 增强版主界面（运维 + 审计） -->
@@ -262,6 +259,10 @@
             android:windowSoftInputMode="adjustPan"
             android:launchMode="singleTop"
             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <!-- WorkManager 初始化 Provider（Hilt Worker 支持） -->

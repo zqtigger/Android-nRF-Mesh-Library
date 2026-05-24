@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 状态栏 -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:padding="8dp"
+            android:background="#F5F5F5"
+            android:text="就绪，请创建 Mesh 网络"
+            android:textColor="#333"
+            android:textSize="14sp" />
+
+        <!-- 网络信息 -->
+        <TextView
+            android:id="@+id/tvNetworkInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="#E3F2FD"
+            android:text="未创建网络\n点击「创建网络」开始"
+            android:textColor="#1565C0"
+            android:textSize="13sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 操作按钮区 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnCreateNetwork"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="创建网络"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnResetNetwork"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                android:text="重置网络"
+                android:textSize="14sp"
+                style="?android:attr/buttonBarButtonStyle" />
+
+            <Button
+                android:id="@+id/btnScan"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="扫描设备"
+                android:textSize="14sp"
+                android:enabled="false" />
+
+        </LinearLayout>
+
+        <!-- 已配网节点 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="已配网节点:"
+            android:textColor="#333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvProvisionedNodes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:background="#E8F5E9"
+            android:text="暂无已配网节点"
+            android:textColor="#2E7D32"
+            android:textSize="13sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 发现设备列表 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="发现设备 (点击配网):"
+            android:textColor="#333"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvDeviceList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:background="#FFF3E0"
+            android:text="(暂无发现设备，点击扫描)"
+            android:textColor="#E65100"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="3dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- 日志区 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="日志:"
+            android:textColor="#999"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:background="#FAFAFA"
+            android:text=""
+            android:textColor="#666"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="2dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="64dp" />
+
+    </LinearLayout>
+</ScrollView>
