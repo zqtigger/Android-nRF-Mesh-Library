@@ -23,15 +23,16 @@
 apply plugin: 'com.android.application'
 apply plugin: 'dagger.hilt.android.plugin'
 apply from: rootProject.file("gradle/git-tag-version.gradle")
+apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
 
-    compileSdk(35)
+    compileSdk(36)
 
     defaultConfig {
         applicationId "no.nordicsemi.android.nrfmeshprovisioner"
-        minSdk(19)
-        targetSdk(35)
+        minSdk(23)
+        targetSdk(36)
         versionCode getVersionCodeFromTags()
         versionName getVersionNameFromTags()
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -40,6 +41,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        dataBinding true
     }
     signingConfigs {
         release {
@@ -52,18 +54,23 @@ android {
     buildTypes {
         debug {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled true
             signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     namespace 'no.nordicsemi.android.nrfmesh'
+    kotlinOptions {
+        jvmTarget = '11'
+    }
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.core:core-ktx:1.18.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0'
 
     // Required -- JUnit 4 framework
     testImplementation 'junit:junit:4.13.2'

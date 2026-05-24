@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用名称 -->
+    <string name="app_name">冷链Mesh配网</string>
+    <string name="feature_name">冷链配网</string>
+
+    <!-- 主界面 -->
+    <string name="title_network">网络</string>
+    <string name="title_scanner">扫描设备</string>
+    <string name="title_groups">分组</string>
+    <string name="title_settings">设置</string>
+
+    <!-- 扫描 -->
+    <string name="sub_title_scanning_nodes">正在搜索未配网设备…</string>
+    <string name="sub_title_scanning_proxy_node">正在搜索已配网代理节点…</string>
+    <string name="unknown_device">未知设备</string>
+    <string name="no_devices_found">未发现设备</string>
+
+    <!-- 配网 -->
+    <string name="title_provisioning">配网中</string>
+    <string name="provisioning_device">正在配网: %1$s</string>
+    <string name="provisioning_complete">配网完成</string>
+    <string name="provisioning_failed">配网失败</string>
+    <string name="action_provision">配网此设备</string>
+    <string name="action_retry">重试</string>
+    <string name="action_done">完成</string>
+
+    <!-- 配网进度 -->
+    <string name="progress_scanning">扫描中…</string>
+    <string name="progress_connecting">连接中…</string>
+    <string name="progress_provisioning">配网中…</string>
+    <string name="progress_configuring">配置中…</string>
+    <string name="progress_appkey_add">添加AppKey</string>
+    <string name="progress_model_bind">绑定Model</string>
+    <string name="progress_pub_set">配置发布地址</string>
+    <string name="progress_done">完成</string>
+
+    <!-- 设备信息 -->
+    <string name="device_name_gateway">冷链网关</string>
+    <string name="device_name_sensor">温度传感器</string>
+    <string name="label_address">地址</string>
+    <string name="label_rssi">信号强度</string>
+    <string name="label_uuid">UUID</string>
+    <string name="label_connected">已连接</string>
+    <string name="label_disconnected">未连接</string>
+    <string name="label_online">在线</string>
+    <string name="label_offline">离线</string>
+
+    <!-- 网络信息 -->
+    <string name="title_network_info">网络信息</string>
+    <string name="label_node_count">节点数</string>
+    <string name="label_net_key">网络密钥</string>
+    <string name="label_app_key">应用密钥</string>
+    <string name="label_provisioner">配网器</string>
+
+    <!-- 操作 -->
+    <string name="action_scan">扫描设备</string>
+    <string name="action_connect">连接</string>
+    <string name="action_disconnect">断开</string>
+    <string name="action_reset_network">重置网络</string>
+    <string name="action_export">导出网络</string>
+    <string name="action_import">导入网络</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_confirm">确认</string>
+
+    <!-- 提示 -->
+    <string name="hint_no_network">尚未创建Mesh网络，请先创建网络后开始配网。</string>
+    <string name="hint_scan_tip">请将手机靠近待配网设备，点击扫描按钮开始搜索。</string>
+    <string name="hint_gateway_first">请先配网网关节点（地址 0x0001），再配网传感器节点（地址 0x0002 起）。</string>
+    <string name="hint_network_ready">网络已就绪，网关地址: 0x0001</string>
+    <string name="hint_appkey_fixed">AppKey: 0123…3210（与网关固件一致）</string>
+
+    <!-- 确认对话框 -->
+    <string name="dialog_reset_title">重置网络？</string>
+    <string name="dialog_reset_message">确定要重置整个 Mesh 网络吗？所有已配网节点将被清除。</string>
+    <string name="dialog_provision_gateway_title">配网网关？</string>
+    <string name="dialog_provision_gateway_message">将此设备作为网关节点配网（地址 0x0001）？</string>
+    <string name="dialog_provision_sensor_title">配网传感器？</string>
+    <string name="dialog_provision_sensor_message">将此设备作为传感器节点配网（地址 0x%1$04X）？</string>
+
+    <!-- Snackbar -->
+    <string name="snackbar_network_created">Mesh网络已创建</string>
+    <string name="snackbar_provision_ok">设备配网成功</string>
+    <string name="snackbar_provision_fail">设备配网失败</string>
+    <string name="snackbar_config_ok">设备配置完成</string>
+    <string name="snackbar_disconnected">已断开连接</string>
+</resources>

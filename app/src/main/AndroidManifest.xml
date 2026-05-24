@@ -84,35 +84,35 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <activity
-            android:name=".MainActivity"
-            android:theme="@style/AppTheme.SplashScreen"
-            android:windowSoftInputMode="adjustPan"
-            android:launchMode="singleTop"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+<!--        <activity-->
+<!--            android:name=".MainActivity"-->
+<!--            android:theme="@style/AppTheme.SplashScreen"-->
+<!--            android:windowSoftInputMode="adjustPan"-->
+<!--            android:launchMode="singleTop"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
 
         <!--
          This activity alias is used to allow opening nRF Blinky from nRF Toolbox.
          This is not required if this feature is not desired.
          nRF Toolbox is displaying a different name and an icon, which are taken from this alias.
-        -->
-        <activity-alias
-            android:name="SplashScreenActivity"
-            android:targetActivity=".MainActivity"
-            android:icon="@drawable/ic_mesh_feature"
-            android:label="@string/feature_name"
-            android:launchMode="singleTop"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER"/>
-            </intent-filter>
-        </activity-alias>
+       &ndash;&gt;-->
+<!--        <activity-alias-->
+<!--            android:name="SplashScreenActivity"-->
+<!--            android:targetActivity=".MainActivity"-->
+<!--            android:icon="@drawable/ic_mesh_feature"-->
+<!--            android:label="@string/feature_name"-->
+<!--            android:launchMode="singleTop"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN"/>-->
+<!--                <category android:name="no.nordicsemi.android.nrftoolbox.LAUNCHER"/>-->
+<!--            </intent-filter>-->
+<!--        </activity-alias>-->
 
         <activity
             android:name=".ble.ScannerActivity"
@@ -238,5 +238,16 @@
         <activity
             android:name=".export.ExportNetworkActivity"
             android:launchMode="singleTop" />
+        <activity
+            android:name=".coldchain.ColdChainMainActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTop"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

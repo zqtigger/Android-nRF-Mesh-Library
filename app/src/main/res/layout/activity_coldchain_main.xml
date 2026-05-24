@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".coldchain.ColdChainMainActivity">
+
+    <data>
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#F5F5F5">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#2196F3"
+            app:title="Cold Chain BLE Mesh"
+            app:titleTextColor="#FFFFFF" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <!-- Network Management Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardElevation="2dp"
+                    app:cardCornerRadius="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Mesh Network"
+                            android:textSize="18sp"
+                            android:textColor="#333333"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="12dp" />
+
+                        <TextView
+                            android:id="@+id/tv_network_info"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="No network\nTap Create Network to start"
+                            android:textSize="14sp"
+                            android:textColor="#666666"
+                            android:lineSpacingExtra="4dp"
+                            android:layout_marginBottom="12dp"
+                            android:fontFamily="monospace" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center">
+
+                            <Button
+                                android:id="@+id/btn_create_network"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Create Network"
+                                android:textColor="#FFFFFF"
+                                android:backgroundTint="#4CAF50"
+                                android:layout_marginEnd="8dp" />
+
+                            <Button
+                                android:id="@+id/btn_reset_network"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Reset"
+                                android:textColor="#FFFFFF"
+                                android:backgroundTint="#F44336" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Provisioning Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardElevation="2dp"
+                    app:cardCornerRadius="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Device Provisioning"
+                            android:textSize="18sp"
+                            android:textColor="#333333"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_start_scan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Start BLE Scan"
+                            android:textColor="#FFFFFF"
+                            android:backgroundTint="#2196F3"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/tv_status"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Ready..."
+                            android:textSize="13sp"
+                            android:textColor="#666666"
+                            android:gravity="center"
+                            android:layout_marginBottom="8dp" />
+
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            app:cardElevation="1dp"
+                            app:cardCornerRadius="8dp">
+
+                            <ScrollView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:id="@+id/tv_device_list"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="No devices"
+                                    android:textSize="13sp"
+                                    android:textColor="#333333"
+                                    android:fontFamily="monospace"
+                                    android:lineSpacingExtra="2dp" />
+                            </ScrollView>
+                        </androidx.cardview.widget.CardView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Provisioned Nodes Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardElevation="2dp"
+                    app:cardCornerRadius="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Provisioned Nodes"
+                            android:textSize="18sp"
+                            android:textColor="#333333"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="12dp" />
+
+                        <TextView
+                            android:id="@+id/tv_provisioned_nodes"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="No nodes"
+                            android:textSize="14sp"
+                            android:textColor="#666666"
+                            android:fontFamily="monospace"
+                            android:lineSpacingExtra="4dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Log Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    app:cardElevation="2dp"
+                    app:cardCornerRadius="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Log"
+                            android:textSize="18sp"
+                            android:textColor="#333333"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="8dp" />
+
+                        <ScrollView
+                            android:layout_width="match_parent"
+                            android:layout_height="150dp">
+
+                            <TextView
+                                android:id="@+id/tv_log"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Ready.\n"
+                                android:textSize="12sp"
+                                android:textColor="#555555"
+                                android:fontFamily="monospace"
+                                android:lineSpacingExtra="2dp" />
+                        </ScrollView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cold Chain BLE Mesh Provisioner\nUsing Nordic nRF Mesh Library"
+                    android:textSize="11sp"
+                    android:textColor="#AAAAAA"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="24dp" />
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+</layout>

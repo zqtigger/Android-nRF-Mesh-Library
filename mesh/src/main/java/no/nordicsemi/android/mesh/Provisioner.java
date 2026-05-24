@@ -111,7 +111,7 @@ public class Provisioner implements Parcelable, Cloneable {
     }
 
     @SuppressWarnings("ConstantConditions")
-    protected Provisioner(Parcel in) {
+    public Provisioner(Parcel in) {
         meshUuid = in.readString();
         provisionerUuid = in.readString();
         provisionerName = in.readString();

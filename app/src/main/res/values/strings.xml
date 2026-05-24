@@ -21,7 +21,7 @@
   -->
 
 <resources>
-    <string name="app_name">nRF Mesh</string>
+    <string name="app_name">冷链Mesh配网</string>
     <string name="feature_name">Mesh</string>
     <string name="title_scanner">Scanner</string>
     <string name="sub_title_scanning_nodes">Looking for unprovisioned proxy nodes…</string>

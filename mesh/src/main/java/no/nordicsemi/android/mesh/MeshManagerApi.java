@@ -793,7 +793,9 @@ public class MeshManagerApi implements MeshMngrApi {
         ivUpdateTestModeActive = false;
         allowIvIndexRecoveryOver42 = false;
         final MeshNetwork meshNet = mMeshNetwork;
-        deleteMeshNetworkFromDb(meshNet);
+        if (meshNet != null) {
+            deleteMeshNetworkFromDb(meshNet);
+        }
         final MeshNetwork newMeshNetwork = generateMeshNetwork();
         newMeshNetwork.setCallbacks(callbacks);
         insertNetwork(newMeshNetwork);

@@ -28,7 +28,6 @@ android {
 
     defaultConfig {
         minSdk(18)
-        targetSdk(35)
 
         javaCompileOptions {
             annotationProcessorOptions {
@@ -54,8 +53,12 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+        targetSdk 35
     }
     namespace 'no.nordicsemi.android.mesh'
+    lint {
+        targetSdk 35
+    }
 }
 
 dependencies {
