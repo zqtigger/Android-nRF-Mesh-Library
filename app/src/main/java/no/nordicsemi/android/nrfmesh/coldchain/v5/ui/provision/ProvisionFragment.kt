@@ -29,6 +29,8 @@ import no.nordicsemi.android.nrfmesh.ble.BleMeshManagerCallbacks
 import no.nordicsemi.android.nrfmesh.coldchain.ColdChainKeys
 import no.nordicsemi.android.nrfmesh.coldchain.ColdChainNodeConfigurator
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.MeshDataRepository
+import no.nordicsemi.android.nrfmesh.coldchain.v5.mesh.ColdChainSensorModelHandler
+import no.nordicsemi.android.mesh.transport.VendorModelMessageStatus
 import no.nordicsemi.android.support.v18.scanner.*
 import java.nio.ByteBuffer
 import java.util.*
@@ -557,10 +559,11 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
      */
     private fun handleVendorMessage(src: Int, msg: no.nordicsemi.android.mesh.transport.MeshMessage) {
         try {
+            if (msg !is VendorModelMessageStatus) return
             val opCode = msg.opCode
             // 只处理我们定义的 Vendor OpCode (0xC1~0xC6)
             if (opCode !in 0xC1..0xC6) return
-            val payload = msg.parameters ?: return
+            val payload = msg.accessPayload ?: return
             val nodeName = getNodeName(src)
             log("收到Vendor消息: src=0x${Integer.toHexString(src)}, opCode=0x${Integer.toHexString(opCode)}, len=${payload.size}")
             lifecycleScope.launch(Dispatchers.IO) {

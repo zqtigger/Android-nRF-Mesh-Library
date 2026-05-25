@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import no.nordicsemi.android.mesh.MeshManagerApi
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.DashboardRepository
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.GatewayHttpRepository
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.MeshDataRepository
@@ -18,9 +19,10 @@ object RepositoryModule {
     @Singleton
     fun provideDashboardRepository(
         meshDataRepository: MeshDataRepository,
-        gatewayHttpRepository: GatewayHttpRepository
+        gatewayHttpRepository: GatewayHttpRepository,
+        meshManagerApi: MeshManagerApi
     ): DashboardRepository {
-        return DashboardRepository(meshDataRepository, gatewayHttpRepository)
+        return DashboardRepository(meshDataRepository, gatewayHttpRepository, meshManagerApi)
     }
 
     @Provides
