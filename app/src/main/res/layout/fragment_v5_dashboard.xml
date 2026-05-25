@@ -96,13 +96,36 @@
 
             </LinearLayout>
 
+            <!-- 已配网设备列表（直接从 Mesh 网络读取） -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="📋 已配网设备"
+                android:textColor="#333"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvNodeList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:background="#E8F5E9"
+                android:text="暂无已配网设备"
+                android:textColor="#333"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:lineSpacingExtra="3dp" />
+
             <!-- 实时数据区 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:text="📍 实时数据"
+                android:text="📍 传感器数据"
                 android:textColor="#333"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -113,7 +136,7 @@
                 android:layout_height="wrap_content"
                 android:padding="12dp"
                 android:background="#FAFAFA"
-                android:text="暂无数据"
+                android:text="暂无传感器上传数据\n(需传感器周期性 Publish 到 Group 0xC001)"
                 android:textColor="#333"
                 android:textSize="13sp"
                 android:fontFamily="monospace"

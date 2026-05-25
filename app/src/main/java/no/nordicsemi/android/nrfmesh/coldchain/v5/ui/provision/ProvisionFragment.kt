@@ -518,13 +518,20 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     private fun setupMeshCallbacks() {
         meshManagerApi.setMeshStatusCallbacks(object : MeshStatusCallbacks {
             override fun onTransactionFailed(dst: Int, timer: Boolean) {}
-            override fun onUnknownPduReceived(src: Int, payload: ByteArray) {}
+            override fun onUnknownPduReceived(src: Int, payload: ByteArray) {
+                log("收到未知PDU: src=0x${Integer.toHexString(src)}, len=${payload.size}")
+            }
             override fun onBlockAcknowledgementProcessed(dst: Int, msg: no.nordicsemi.android.mesh.transport.ControlMessage) {}
             override fun onBlockAcknowledgementReceived(src: Int, msg: no.nordicsemi.android.mesh.transport.ControlMessage) {}
             override fun onHeartbeatMessageReceived(src: Int, msg: no.nordicsemi.android.mesh.transport.ControlMessage) {}
             override fun onMeshMessageProcessed(dst: Int, msg: no.nordicsemi.android.mesh.transport.MeshMessage) {}
-            override fun onMeshMessageReceived(src: Int, msg: no.nordicsemi.android.mesh.transport.MeshMessage) {}
-            override fun onMessageDecryptionFailed(layer: String, error: String) {}
+            override fun onMeshMessageReceived(src: Int, msg: no.nordicsemi.android.mesh.transport.MeshMessage) {
+                // ⭐ 转发 Vendor Model 消息到数据仓库（传感器数据→仪表盘）
+                handleVendorMessage(src, msg)
+            }
+            override fun onMessageDecryptionFailed(layer: String, error: String) {
+                log("解密失败: $layer - $error")
+            }
         })
         if (meshManagerCallbacks == null) {
             meshManagerCallbacks = object : MeshManagerCallbacks {
@@ -543,6 +550,28 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             }
             meshManagerApi.setMeshManagerCallbacks(meshManagerCallbacks!!)
         }
+    }
+
+    /**
+     * 处理收到的 Vendor Model 消息 → 解析 → 存入 Room DB → 仪表盘可见
+     */
+    private fun handleVendorMessage(src: Int, msg: no.nordicsemi.android.mesh.transport.MeshMessage) {
+        try {
+            val opCode = msg.opCode
+            // 只处理我们定义的 Vendor OpCode (0xC1~0xC6)
+            if (opCode !in 0xC1..0xC6) return
+            val payload = msg.parameters ?: return
+            val nodeName = getNodeName(src)
+            log("收到Vendor消息: src=0x${Integer.toHexString(src)}, opCode=0x${Integer.toHexString(opCode)}, len=${payload.size}")
+            lifecycleScope.launch(Dispatchers.IO) {
+                ColdChainSensorModelHandler.handleVendorMessage(src, opCode, payload, nodeName, meshDataRepository)
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun getNodeName(src: Int): String {
+        val node = meshNetwork?.getNode(src)
+        return node?.nodeName ?: "NODE_${Integer.toHexString(src).uppercase()}"
     }
 
     // ─── UI ───

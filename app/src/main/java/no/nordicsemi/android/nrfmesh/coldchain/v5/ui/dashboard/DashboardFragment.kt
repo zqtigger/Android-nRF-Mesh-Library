@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.coldchain.v5.data.local.SensorRecordEntity
+import no.nordicsemi.android.nrfmesh.coldchain.v5.data.repository.ProvisionedNodeInfo
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,6 +30,7 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
     private lateinit var cardGatewayStatus: TextView
     private lateinit var tvRecentData: TextView
     private lateinit var tvGatewayInfo: TextView
+    private lateinit var tvNodeList: TextView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -39,6 +41,7 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
         cardGatewayStatus = view.findViewById(R.id.cardGatewayStatus)
         tvRecentData = view.findViewById(R.id.tvRecentData)
         tvGatewayInfo = view.findViewById(R.id.tvGatewayInfo)
+        tvNodeList = view.findViewById(R.id.tvNodeList)
 
         swipeRefresh.setOnRefreshListener { viewModel.refresh() }
 
@@ -46,21 +49,20 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
     }
 
     private fun observeData() {
-        // 仪表盘快照
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.snapshot.collectLatest { snapshot ->
                 cardSensorCount.text = buildString {
-                    append("传感器\n")
+                    append("设备\n")
                     append("${snapshot.onlineSensorCount} 在线")
-                    if (snapshot.lowBatteryCount > 0) {
-                        append(" | ${snapshot.lowBatteryCount} 低电")
-                    }
-                    append("\n平均电池 ${"%.1f".format(snapshot.avgBatteryPct)}%")
+                    if (snapshot.gwCount > 0) append(" | ${snapshot.gwCount}网关")
+                    if (snapshot.sensorCount > 0) append(" | ${snapshot.sensorCount}传感器")
+                    if (snapshot.lowBatteryCount > 0) append(" | ${snapshot.lowBatteryCount}低电")
                 }
+                // 显示已配网设备列表
+                tvNodeList.text = buildNodeListText(snapshot.provisionedNodes)
             }
         }
 
-        // 告警计数
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.unacknowledgedAlarmCount.collectLatest { count ->
                 cardAlarmCount.text = buildString {
@@ -68,14 +70,11 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
                     if (count > 0) append("$count 个活跃告警") else append("无活跃告警")
                 }
                 if (count > 0) {
-                    (cardAlarmCount.parent as? CardView)?.setCardBackgroundColor(
-                        0xFFD32F2F.toInt()
-                    )
+                    (cardAlarmCount.parent as? CardView)?.setCardBackgroundColor(0xFFD32F2F.toInt())
                 }
             }
         }
 
-        // 网关状态
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.gatewayStatus.collectLatest { status ->
                 val online = status?.isOnline == true
@@ -84,26 +83,22 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
                     if (status != null) {
                         append(if (online) "✓ 在线" else "✗ 离线")
                         if (online) append(" RSSI=${status.rssi}")
-                        append("\n角色: ${status.role.name}")
                     } else {
-                        append("未连接")
+                        append("HTTP未连")
                     }
                 }
                 tvGatewayInfo.text = if (status != null) {
-                    "Primary: ${if (status.isOnline) "在线 RSSI=${status.rssi}" else "离线"} | " +
-                            "Relay覆盖率: ${"%.0f".format(status.relayCoverage * 100)}%"
-                } else "网关未连接"
+                    "${if (status.isOnline) "在线" else "离线"} | ${status.role.name}"
+                } else "网关 HTTP 未连接"
             }
         }
 
-        // 最近记录
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.recentRecords.collectLatest { records ->
-                tvRecentData.text = buildRecentDataText(records)
+                tvRecentData.text = buildSensorDataText(records)
             }
         }
 
-        // 刷新状态
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.isRefreshing.collectLatest { refreshing ->
                 swipeRefresh.isRefreshing = refreshing
@@ -111,15 +106,30 @@ class DashboardFragment : Fragment(R.layout.fragment_v5_dashboard) {
         }
     }
 
-    private fun buildRecentDataText(records: List<SensorRecordEntity>): String {
-        if (records.isEmpty()) return "暂无数据"
+    private fun buildNodeListText(nodes: List<ProvisionedNodeInfo>): String {
+        if (nodes.isEmpty()) return "暂无已配网设备"
+        return buildString {
+            append("═══ 已配网设备 ═══\n")
+            nodes.forEach { n ->
+                val icon = when (n.role) { "网关" -> "🌐" else -> "📊" }
+                val data = if (n.hasSensorData) {
+                    " | ${"%.1f".format(n.lastTemp)}°C ${"%.1f".format(n.lastHumi)}%RH 电池${n.batteryPct}%"
+                } else {
+                    " | (等待采样数据)"
+                }
+                append("$icon ${n.name} [0x${Integer.toHexString(n.unicastAddr).uppercase()}]$data\n")
+            }
+        }
+    }
+
+    private fun buildSensorDataText(records: List<SensorRecordEntity>): String {
+        if (records.isEmpty()) return "暂无传感器上传数据\n(需传感器周期性 Publish 到 Group 0xC001)"
         val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
         return buildString {
             append("═══ 最近采样 ═══\n")
             records.take(10).forEach { r ->
                 val time = try { sdf.format(Date(r.receivedAt)) } catch (_: Exception) { "--:--:--" }
-                append("${r.nodeName} | ${r.temp / 100f}°C / ${r.humi / 100f}%RH | ")
-                append("电池${r.batteryPct}% | $time\n")
+                append("${r.nodeName} | ${r.temp / 100f}°C / ${r.humi / 100f}%RH | 电池${r.batteryPct}% | $time\n")
             }
         }
     }
