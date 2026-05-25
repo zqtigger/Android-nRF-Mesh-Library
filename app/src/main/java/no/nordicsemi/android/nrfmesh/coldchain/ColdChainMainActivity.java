@@ -439,7 +439,7 @@ public class ColdChainMainActivity extends AppCompatActivity
                     binding.tvStatus.setText("配网完成: 0x"
                             + Integer.toHexString(addr).toUpperCase());
                     toast("配网成功!");
-                    if (addr != ColdChainKeys.GATEWAY_UNICAST_ADDR) {
+                    if (!ColdChainKeys.isGatewayAddr(addr)) {
                         nextSensorAddr = addr + 1;
                     }
                     updateUi();
@@ -623,11 +623,11 @@ public class ColdChainMainActivity extends AppCompatActivity
          */
         int unicastAddr;
         if (devName.startsWith("Gateway_")) {
-            unicastAddr = ColdChainKeys.GATEWAY_UNICAST_ADDR;
+            unicastAddr = ColdChainKeys.GATEWAY_START_ADDR;
             log("识别为网关: " + devName + " → 0x" + Integer.toHexString(unicastAddr).toUpperCase());
-        } else if (nextSensorAddr == ColdChainKeys.SENSOR_START_ADDR && !hasGatewayProvisioned()) {
+        } else if (!hasGatewayProvisioned()) {
             log("未识别网关名称，作为首个设备分配网关地址");
-            unicastAddr = ColdChainKeys.GATEWAY_UNICAST_ADDR;
+            unicastAddr = ColdChainKeys.GATEWAY_START_ADDR;
         } else {
             unicastAddr = nextSensorAddr;
         }
@@ -638,7 +638,7 @@ public class ColdChainMainActivity extends AppCompatActivity
     private boolean hasGatewayProvisioned() {
         if (meshNetwork == null) return false;
         for (ProvisionedMeshNode n : meshNetwork.getNodes()) {
-            if (n.getUnicastAddress() == ColdChainKeys.GATEWAY_UNICAST_ADDR) return true;
+            if (ColdChainKeys.isGatewayAddr(n.getUnicastAddress())) return true;
         }
         return false;
     }
@@ -958,7 +958,7 @@ public class ColdChainMainActivity extends AppCompatActivity
                     "网关地址: 0x%04X\n" +
                     "下个传感器: 0x%04X\n" +
                     "AppKey 索引: %d (0123456789ABCDEF…)",
-                    ColdChainKeys.GATEWAY_UNICAST_ADDR,
+                    ColdChainKeys.GATEWAY_START_ADDR,
                     nextSensorAddr,
                     ColdChainKeys.APP_KEY_INDEX));
             binding.btnCreateNetwork.setEnabled(false);
@@ -975,7 +975,7 @@ public class ColdChainMainActivity extends AppCompatActivity
                 sb.append("暂无已配网节点");
             } else {
                 for (ProvisionedMeshNode n : nodes) {
-                    String type = n.getUnicastAddress() == ColdChainKeys.GATEWAY_UNICAST_ADDR
+                    String type = ColdChainKeys.isGatewayAddr(n.getUnicastAddress())
                             ? "【网关】" : "【传感器】";
                     sb.append(String.format(Locale.getDefault(),
                             "%s 0x%04X | %s\n",

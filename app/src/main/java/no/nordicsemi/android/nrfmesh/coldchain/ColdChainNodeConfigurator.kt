@@ -70,7 +70,7 @@ class ColdChainNodeConfigurator {
         val appKeyIndex = ColdChainKeys.APP_KEY_INDEX
         val netKeyIndex = ColdChainKeys.NET_KEY_INDEX
         val modelId = ColdChainKeys.VENDOR_MODEL_ID
-        val pubAddr = ColdChainKeys.GATEWAY_UNICAST_ADDR
+        val pubAddr = ColdChainKeys.GATEWAY_START_ADDR
 
         log("═══ 开始配置节点 0x${Integer.toHexString(nodeAddr).uppercase(Locale.getDefault())} ═══")
         log("Provisioner=0x${

@@ -59,6 +59,9 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     // State
     private var meshNetwork: MeshNetwork? = null
     private var networkReady = false
+    /** 网关下一个可用地址 (0x0002~0x000A)，从 ColdChainKeys.GATEWAY_START_ADDR 起 */
+    private var nextGatewayAddr = ColdChainKeys.GATEWAY_START_ADDR
+    /** 传感器下一个可用地址 (0x0011~0x00FF)，从 ColdChainKeys.SENSOR_START_ADDR 起 */
     private var nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
     private val handler = Handler(Looper.getMainLooper())
     private var isScanning = false
@@ -150,11 +153,16 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 && savedNetwork.nodes.isNotEmpty()) {
                 meshNetwork = savedNetwork
                 networkReady = true
-                nextSensorAddr = (savedNetwork.nodes.maxOf { it.unicastAddress } + 1)
+                val nodes = savedNetwork.nodes
+                val maxGw = nodes.filter { ColdChainKeys.isGatewayAddr(it.unicastAddress) }
+                    .maxOfOrNull { it.unicastAddress }
+                val maxSn = nodes.filter { ColdChainKeys.isSensorAddr(it.unicastAddress) }
+                    .maxOfOrNull { it.unicastAddress }
+                nextGatewayAddr = (maxGw?.plus(1) ?: ColdChainKeys.GATEWAY_START_ADDR)
+                    .coerceIn(ColdChainKeys.GATEWAY_START_ADDR, ColdChainKeys.GATEWAY_END_ADDR + 1)
+                nextSensorAddr = (maxSn?.plus(1) ?: ColdChainKeys.SENSOR_START_ADDR)
                     .coerceAtLeast(ColdChainKeys.SENSOR_START_ADDR)
-                val nodeCount = savedNetwork.nodes.size
-                log("已加载现有网络: ${nodeCount}个已配网节点")
-                toast("已加载网络 (${nodeCount}个节点)")
+                log("已加载现有网络: ${nodes.size}个节点 (网关${maxGw?.let{nodes.count{ColdChainKeys.isGatewayAddr(it.unicastAddress)}}?:0}, 传感器${maxSn?.let{nodes.count{ColdChainKeys.isSensorAddr(it.unicastAddress)}}?:0})")
             }
         } catch (_: Exception) { }
     }
@@ -178,8 +186,9 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                     updateUi()
                 }, 500)
                 networkReady = true
+                nextGatewayAddr = ColdChainKeys.GATEWAY_START_ADDR
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
-                log("网络创建成功! Provisioner=0x0001(库默认), 节点起始=0x0001")
+                log("网络创建成功! Provisioner=0x0001, 网关起始=0x0002, 传感器起始=0x0011")
                 toast("Mesh 网络已创建")
             }
         } catch (e: Exception) {
@@ -204,6 +213,7 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
                 networkReady = true
+                nextGatewayAddr = ColdChainKeys.GATEWAY_START_ADDR
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
                 tvDeviceList.text = "暂无设备"
                 tvProvisionedNodes.text = "暂无已配网节点"
@@ -284,24 +294,36 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
         if (index !in foundDevices.indices) return
         val wrapper = foundDevices[index]
         val devName = wrapper.device.name ?: ""
-        // 地址分配规则：
-        //   1. 设备名以 "Gateway_" 开头 → 网关 0x0001
-        //   2. 尚无任何已配网节点 → 视为网关，分配 0x0001（即使名字不匹配）
-        //   3. 已有节点 → 传感器，分配 nextSensorAddr
+        // 地址分配规则（参照 gateway_group_analysis.md）:
+        //   1. 设备名以 "Gateway_" 开头 → 网关 (0x0002~0x000A)
+        //   2. 设备名以 "SENSOR_" 开头 → 传感器 (0x0011~)
+        //   3. 尚无任何网关 → 视为网关（兼容 ESP-BLE-MESH 默认名）
+        //   4. 已有网关 → 传感器
+        val isGatewayByName = devName.startsWith("Gateway_")
+        val isSensorByName = devName.startsWith("SENSOR_")
         val addr = when {
-            devName.startsWith("Gateway_") -> ColdChainKeys.GATEWAY_UNICAST_ADDR
-            meshNetwork?.nodes.isNullOrEmpty() -> ColdChainKeys.GATEWAY_UNICAST_ADDR
+            isGatewayByName -> nextGatewayAddr
+            isSensorByName -> nextSensorAddr
+            !hasAnyGateway() -> nextGatewayAddr  // 首个设备默认当网关
             else -> nextSensorAddr
         }
-        val role = if (addr == ColdChainKeys.GATEWAY_UNICAST_ADDR) "网关" else "传感器"
-        log("设备地址分配: ${devName} → ${role} 0x${Integer.toHexString(addr).uppercase()}")
+        val role = when {
+            isGatewayByName -> "网关"
+            isSensorByName -> "传感器"
+            !hasAnyGateway() -> "网关(首个设备)"
+            else -> "传感器"
+        }
+        log("地址分配: ${devName} → ${role} 0x${Integer.toHexString(addr).uppercase()}")
         provisionDevice(wrapper, addr)
     }
 
-    private fun hasGateway(): Boolean {
-        meshNetwork?.nodes?.forEach { if (it.unicastAddress == ColdChainKeys.GATEWAY_UNICAST_ADDR) return true }
+    /** 是否已有任何网关节点 */
+    private fun hasAnyGateway(): Boolean {
+        meshNetwork?.nodes?.forEach { if (ColdChainKeys.isGatewayAddr(it.unicastAddress)) return true }
         return false
     }
+
+    private fun hasGateway(): Boolean = hasAnyGateway()
 
     private fun provisionDevice(wrapper: ScanResultWrapper, unicastAddr: Int) {
         if (isConnecting) { toast("正在连接中"); return }
@@ -407,13 +429,15 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             }
             override fun onProvisioningCompleted(node: ProvisionedMeshNode, state: ProvisioningState.States, data: ByteArray?) {
                 val addr = node.unicastAddress
-                log("配网完成 0x${Integer.toHexString(addr).uppercase()}")
+                val isGw = ColdChainKeys.isGatewayAddr(addr)
+                val role = if (isGw) "网关" else "传感器"
+                log("配网完成: ${role} 0x${Integer.toHexString(addr).uppercase()}")
                 isConnecting = false
                 bleMeshManager.disconnect().enqueue()
                 handler.post {
-                    tvStatus.text = "配网完成: 0x${Integer.toHexString(addr).uppercase()}"
+                    tvStatus.text = "配网完成: ${role} 0x${Integer.toHexString(addr).uppercase()}"
                     toast("配网成功!")
-                    if (addr != ColdChainKeys.GATEWAY_UNICAST_ADDR) nextSensorAddr = addr + 1
+                    if (isGw) nextGatewayAddr = addr + 1 else nextSensorAddr = addr + 1
                     updateUi()
                 }
                 // 延迟重连→Proxy→Config
@@ -526,13 +550,15 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     private fun updateUi() {
         handler.post {
             if (networkReady && meshNetwork != null) {
-                val provAddr = meshNetwork?.selectedProvisioner?.provisionerAddress ?: 0
                 tvNetworkInfo.text = buildString {
                     append("网络就绪\n")
-                    append("Provisioner: 0x${Integer.toHexString(provAddr).uppercase()}\n")
-                    append("网关地址: 0x${Integer.toHexString(ColdChainKeys.GATEWAY_UNICAST_ADDR).uppercase()}\n")
+                    append("Provisioner: 0x0001(库默认)\n")
+                    append("下个网关: 0x${Integer.toHexString(nextGatewayAddr).uppercase()}")
+                    if (nextGatewayAddr > ColdChainKeys.GATEWAY_END_ADDR) append(" (已满)")
+                    append("\n")
                     append("下个传感器: 0x${Integer.toHexString(nextSensorAddr).uppercase()}\n")
                     append("AppKey[${ColdChainKeys.APP_KEY_INDEX}]: 0123456789ABCDEF...\n")
+                    append("Group: 0xC001/0xC002/0xC003\n")
                 }
                 btnCreateNetwork.isEnabled = false
                 btnScan.isEnabled = true
@@ -547,8 +573,13 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 tvProvisionedNodes.text = "暂无已配网节点"
             } else {
                 tvProvisionedNodes.text = nodes.joinToString("\n") { n ->
-                    val type = if (n.unicastAddress == ColdChainKeys.GATEWAY_UNICAST_ADDR) "【网关】" else "【传感器】"
-                    "$type 0x${Integer.toHexString(n.unicastAddress).uppercase()} | ${n.uuid ?: "未知"}"
+                    val addr = n.unicastAddress
+                    val type = when {
+                        ColdChainKeys.isGatewayAddr(addr) -> "【网关】"
+                        ColdChainKeys.isSensorAddr(addr) -> "【传感器】"
+                        else -> "【其他】"
+                    }
+                    "$type 0x${Integer.toHexString(addr).uppercase()} | ${n.uuid ?: "未知"}"
                 }
             }
         }
