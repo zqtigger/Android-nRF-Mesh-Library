@@ -138,11 +138,9 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
     }
 
     // ─── Network Management ───
-
-    companion object {
-        /** Provisioner 地址 = 0x0000，与 ColdChainKeys 的地址体系一致 */
-        private const val PROVISIONER_UNICAST_ADDR = 0x0000
-    }
+    // 注：nRF Mesh Library 强制 Provisioner 地址必须在 0x0001~0x7FFF
+    // generateMeshNetwork() 默认分配 0x0001，我们保持不变
+    // 配网节点地址从 0x0001 起依次分配（网关第一个，传感器随后）
 
     /** 检查 Mesh Library 是否已从 Room DB 加载了持久化网络 */
     private fun checkExistingNetwork() {
@@ -154,7 +152,6 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 networkReady = true
                 nextSensorAddr = (savedNetwork.nodes.maxOf { it.unicastAddress } + 1)
                     .coerceAtLeast(ColdChainKeys.SENSOR_START_ADDR)
-                fixProvisionerAddress()
                 val nodeCount = savedNetwork.nodes.size
                 log("已加载现有网络: ${nodeCount}个已配网节点")
                 toast("已加载网络 (${nodeCount}个节点)")
@@ -168,7 +165,6 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             meshManagerApi.createMeshNetwork()
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
-                fixProvisionerAddress()
                 handler.postDelayed({
                     try {
                         if (meshNetwork!!.getAppKey(ColdChainKeys.APP_KEY_INDEX) == null) {
@@ -183,7 +179,7 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
                 }, 500)
                 networkReady = true
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
-                log("网络创建成功! Provisioner=0x0000, 网关=0x0001, 传感器起始=0x0002")
+                log("网络创建成功! Provisioner=0x0001(库默认), 节点起始=0x0001")
                 toast("Mesh 网络已创建")
             }
         } catch (e: Exception) {
@@ -191,34 +187,6 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             toast("创建网络失败")
         }
         updateUi()
-    }
-
-    /**
-     * 修正 Provisioner 地址为 0x0000
-     * nRF Mesh Library generateMeshNetwork() 默认 Provisioner=0x0001，
-     * 需改为 0x0000 以腾出 0x0001 给网关节点
-     */
-    private fun fixProvisionerAddress() {
-        val net = meshNetwork ?: return
-        try {
-            val provisioner = net.selectedProvisioner
-            if (provisioner != null) {
-                val currentAddr = provisioner.provisionerAddress
-                if (currentAddr != PROVISIONER_UNICAST_ADDR) {
-                    provisioner.provisionerAddress = PROVISIONER_UNICAST_ADDR
-                    log("Provisioner 地址已修正: 0x${Integer.toHexString(currentAddr ?: 0)} → 0x0000")
-                }
-            } else {
-                val ur = AllocatedUnicastRange(PROVISIONER_UNICAST_ADDR, 0x000F)
-                val gr = AllocatedGroupRange(0xC000, 0xCCFF)
-                val sr = AllocatedSceneRange(0x0000, 0xFFFF)
-                val prov = net.createProvisioner("nRF Mesh Provisioner", ur, gr, sr)
-                prov.provisionerAddress = PROVISIONER_UNICAST_ADDR
-                net.selectProvisioner(prov)
-                net.addProvisioner(prov)
-                log("Provisioner 已创建: 0x0000")
-            }
-        } catch (e: Exception) { log("修正Prov地址失败: ${e.message}") }
     }
 
     private fun askResetNetwork() {
@@ -235,7 +203,6 @@ class ProvisionFragment : Fragment(R.layout.fragment_v5_provision) {
             meshManagerApi.resetMeshNetwork()
             meshNetwork = meshManagerApi.meshNetwork
             if (meshNetwork != null) {
-                fixProvisionerAddress()
                 networkReady = true
                 nextSensorAddr = ColdChainKeys.SENSOR_START_ADDR
                 tvDeviceList.text = "暂无设备"
